@@ -133,5 +133,29 @@
                  (let ((haskell-sessions (list "prj1" "prj2" "prj3")))
                    (mocklet (((haskell-session-name *)      => "prj2-session-name" :times 1)
                              ((process-name "proc-to-find") => "prj2-session-name"))
-                     (haskell-process-project-by-proc "proc-to-find"))))))
+                            (haskell-process-project-by-proc "proc-to-find"))))))
+
+(ert-deftest test-haskell-process-filter ()
+  ;; no session found, nothing to do
+  (should-not (mocklet (((haskell-process--propertize-response 'response) => nil)
+                        ((haskell-process-project-by-proc 'proc) => nil))
+                (haskell-process-filter 'proc 'response)))
+  ;; session found but no current command is found on session, so just log a message
+  (should (equal 'result
+                 (mocklet (((haskell-process--propertize-response "response") => nil)
+                           ((haskell-process-project-by-proc 'proc) => 'session)
+                           ((haskell-session-process 'session) => 'session-process)
+                           ((haskell-process-cmd 'session-process) => nil)
+                           ((haskell-process-log *) => 'result))
+                   (haskell-process-filter 'proc "response"))))
+  ;; session found, a current command is found, we collect and return
+  (should (equal 'result
+                 (mocklet (((haskell-process--propertize-response "response")              => nil)
+                           ((haskell-process-project-by-proc 'proc)                        => 'session)
+                           ((haskell-session-process 'session)                             => 'session-process)
+                           ((haskell-process-cmd 'session-process)                         => 'current-cmd)
+                           ((haskell-process-collect 'session "response" 'session-process) => 'result))
+                   (haskell-process-filter 'proc "response")))))
+
+
 ;;; haskell-process-tests.el ends here

@@ -133,8 +133,8 @@ HPTYPE is the result of calling `'haskell-process-type`' function."
                        'face font-lock-comment-face))
           (run-hook-with-args 'haskell-process-ended-hook process))))))
 
-(defun haskell-process-filter (proc response)
-  "The filter for the process pipe."
+(defun haskell-process--propertize-response (response)
+  "Format and log a string RESPONSE in *haskell-process-log* buffer."
   (let ((i 0))
     (cl-loop for line in (split-string response "\n")
              do (haskell-process-log
@@ -142,7 +142,11 @@ HPTYPE is the result of calling `'haskell-process-type`' function."
                              (propertize "<- " 'face font-lock-comment-face)
                            "   ")
                          (propertize line 'face 'haskell-interactive-face-compile-warning)))
-             do (setq i (1+ i))))
+             do (setq i (1+ i)))))
+
+(defun haskell-process-filter (proc response)
+  "The filter for the process pipe."
+  (haskell-process--propertize-response response)
   (let ((session (haskell-process-project-by-proc proc)))
     (when session
       (if (haskell-process-cmd (haskell-session-process session))
