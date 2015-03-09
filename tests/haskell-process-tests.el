@@ -101,4 +101,22 @@
   (should (equal '((name . ok))
                  (haskell-process-make 'ok))))
 
+(ert-deftest test-haskell-process-sentinel ()
+  ;; no project for this process, nothing is done
+  (should-not (mocklet (((haskell-process-project-by-proc 'proc) => nil))
+                (haskell-process-sentinel 'proc 'event)))
+  ;; a process for this session is currently restarting, nothing is done
+  (should-not (mocklet (((haskell-process-project-by-proc 'proc) => 'session)
+                        ((haskell-session-process 'session) => 'process)
+                        ((haskell-process-restarting 'process) => 'restarting))
+                (haskell-process-sentinel 'proc 'event)))
+  ;; no process for the current session, we start one
+  (should (equal 'hook-ran
+                 (mocklet (((haskell-process-project-by-proc 'proc) => 'session)
+                           ((haskell-session-process 'session) => 'process)
+                           ((haskell-process-restarting 'process) => nil)
+                           ((haskell-process-log *) => nil)
+                           ((run-hook-with-args 'haskell-process-ended-hook 'process) => 'hook-ran))
+                   (haskell-process-sentinel 'proc 'event)))))
+
 ;;; haskell-process-tests.el ends here
