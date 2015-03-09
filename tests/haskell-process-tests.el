@@ -95,4 +95,10 @@
                              ((haskell-session-cabal-dir "dummy-session4") => "directory"))
                      (haskell-process-compute-process-log-and-command "dummy-session4" 'cabal-dev))))))
 
+(ert-deftest test-haskell-process-make ()
+  (should (equal '((name . hello))
+                 (haskell-process-make 'hello)))
+  (should (equal '((name . ok))
+                 (haskell-process-make 'ok))))
+
 ;;; haskell-process-tests.el ends here
