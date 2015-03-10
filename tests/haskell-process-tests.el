@@ -179,4 +179,21 @@
                              ((process-name "proc-to-find") => "prj2-session-name"))
                      (haskell-process-project-by-proc "proc-to-find"))))))
 
+(ert-deftest test-haskell-process-collect ()
+  ;; Do not receive the prompt
+  (should-not (mocklet (((haskell-process-response 'process) => "response from process\n")
+                        ((haskell-process-set-response 'process "response from process\nthis is the main response") => nil)
+                        ((haskell-process-live-updates 'process) => nil))
+                (haskell-process-collect 'session "this is the main response" 'process)))
+  ;; Receive a prompt, complete the command, reset the process, and maybe trigger the next command
+  (should (equal 'trigger-queue-done
+                 (mocklet (((haskell-process-response 'process) => "")
+                           ((haskell-process-set-response *) => nil)
+                           ((haskell-process-live-updates 'process) => nil)
+                           ((haskell-process-cmd 'process) => 'current-cmd)
+                           ((haskell-command-exec-complete 'current-cmd "") => 'command-execution-complete)
+                           ((haskell-process-reset 'process) => 'reset-done)
+                           ((haskell-process-trigger-queue 'process) => 'trigger-queue-done))
+                   (haskell-process-collect 'session "this is the main response" 'process)))))
+
 ;;; haskell-process-tests.el ends here
