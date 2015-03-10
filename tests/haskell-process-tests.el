@@ -119,22 +119,6 @@
                            ((run-hook-with-args 'haskell-process-ended-hook 'process) => 'hook-ran))
                    (haskell-process-sentinel 'proc 'event)))))
 
-(ert-deftest test-haskell-process-project-by-proc ()
-  ;; no session so nothing is found
-  (should-not (let ((haskell-sessions))
-                (haskell-process-project-by-proc "proc-to-find")))
-  ;; no session matching so nothing is found
-  (should-not (let ((haskell-sessions (list "prj1" "prj2")))
-                (mocklet (((haskell-session-name *)      => "prj1-session-name" :times 2)
-                          ((process-name "proc-to-find") => "prj2-session-name"))
-                  (haskell-process-project-by-proc "proc-to-find"))))
-  ;; session found
-  (should (equal "prj1"
-                 (let ((haskell-sessions (list "prj1" "prj2" "prj3")))
-                   (mocklet (((haskell-session-name *)      => "prj2-session-name" :times 1)
-                             ((process-name "proc-to-find") => "prj2-session-name"))
-                            (haskell-process-project-by-proc "proc-to-find"))))))
-
 (ert-deftest test-haskell-process-filter ()
   ;; no session found, nothing to do
   (should-not (mocklet (((haskell-process--propertize-response 'response) => nil)
@@ -178,4 +162,21 @@
                        (haskell-process-log "This is a message to log in the haskell process log buffer.")
                        ;; and retrieve its content
                        (buffer-string))))))
+
+(ert-deftest test-haskell-process-project-by-proc ()
+  ;; no session so nothing is found
+  (should-not (let ((haskell-sessions))
+                (haskell-process-project-by-proc "proc-to-find")))
+  ;; no session matching so nothing is found
+  (should-not (let ((haskell-sessions (list "prj1" "prj2")))
+                (mocklet (((haskell-session-name *)      => "prj1-session-name" :times 2)
+                          ((process-name "proc-to-find") => "prj2-session-name"))
+                  (haskell-process-project-by-proc "proc-to-find"))))
+  ;; session found
+  (should (equal "prj1"
+                 (let ((haskell-sessions (list "prj1" "prj2" "prj3")))
+                   (mocklet (((haskell-session-name *)      => "prj2-session-name" :times 1)
+                             ((process-name "proc-to-find") => "prj2-session-name"))
+                     (haskell-process-project-by-proc "proc-to-find"))))))
+
 ;;; haskell-process-tests.el ends here
