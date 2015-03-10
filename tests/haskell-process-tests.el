@@ -196,4 +196,11 @@
                            ((haskell-process-trigger-queue 'process) => 'trigger-queue-done))
                    (haskell-process-collect 'session "this is the main response" 'process)))))
 
+(ert-deftest test-haskell-process-reset ()
+  (should (equal 'result
+                 (mocklet (((haskell-process-set-response-cursor 'process 0) => 'not-exploited)
+                           ((haskell-process-set-response 'process "") => 'not-exploited)
+                           ((haskell-process-set-cmd 'process nil) => 'result))
+                   (haskell-process-reset 'process)))))
+
 ;;; haskell-process-tests.el ends here
