@@ -157,5 +157,25 @@
                            ((haskell-process-collect 'session "response" 'session-process) => 'result))
                    (haskell-process-filter 'proc "response")))))
 
-
+(ert-deftest test-haskell-process-log ()
+  (should (string= ""
+                   (let ((haskell-process-log nil)
+                         (buf                 (get-buffer-create "*haskell-process-log*")))
+                     ;; before make sure the buffer if it exists is emptied
+                     (with-current-buffer buf
+                       (erase-buffer)
+                       ;; log
+                       (haskell-process-log "This is a message to log in the haskell process log buffer.")
+                       ;; and retrieve its content
+                       (buffer-string)))))
+  (should (string= "This is a message to log in the haskell process log buffer.\n"
+                   (let ((haskell-process-log 'with-log)
+                         (buf                  (get-buffer-create "*haskell-process-log*")))
+                     ;; before make sure the buffer if it exists is emptied
+                     (with-current-buffer buf
+                       (erase-buffer)
+                       ;; log
+                       (haskell-process-log "This is a message to log in the haskell process log buffer.")
+                       ;; and retrieve its content
+                       (buffer-string))))))
 ;;; haskell-process-tests.el ends here
